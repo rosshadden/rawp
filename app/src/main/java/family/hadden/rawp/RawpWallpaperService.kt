@@ -1,39 +1,44 @@
 package family.hadden.rawp
 
-import android.graphics.Color
-import android.graphics.Paint
+import android.app.Presentation
+import android.content.Context
+import android.hardware.display.DisplayManager
 import android.service.wallpaper.WallpaperService
+import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.SurfaceHolder
-import kotlin.random.Random
+import android.webkit.WebView
 
 class RawpWallpaperService : WallpaperService() {
 	override fun onCreateEngine(): Engine = WallpaperEngine()
 
 	private inner class WallpaperEngine : WallpaperService.Engine() {
 		override fun onSurfaceCreated(holder: SurfaceHolder) {
-			drawRandomBG(holder)
+			super.onSurfaceCreated(holder)
+
+			val displayMgr = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+			val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+			val density = DisplayMetrics.DENSITY_DEFAULT
+
+			val virtualDisplay = displayMgr.createVirtualDisplay(
+				"RawpVirtualDisplay",
+				desiredMinimumWidth, desiredMinimumHeight,
+				density,
+				holder.surface,
+				flags
+			)
+
+			val pres = Presentation(displayContext, virtualDisplay.display)
+			val webView = WebView(pres.context)
+			webView.loadUrl("https://google.com")
+
+			pres.setContentView(webView)
+			pres.show()
 		}
 
 		override fun onTouchEvent(event: MotionEvent?) {
 			if (event?.action == MotionEvent.ACTION_DOWN) {
-				drawRandomBG(surfaceHolder)
 			}
-		}
-
-		private fun drawRandomBG(holder: SurfaceHolder) {
-			val canvas = holder.lockCanvas()
-
-			val paint = Paint().apply {
-				val randomColor = Random.nextInt(16_777_216)
-					.toString(16)
-					.padStart(6, '0')
-				color = Color.parseColor("#$randomColor")
-				style = Paint.Style.FILL
-			}
-			canvas.drawPaint(paint)
-
-			holder.unlockCanvasAndPost(canvas)
 		}
 	}
 }

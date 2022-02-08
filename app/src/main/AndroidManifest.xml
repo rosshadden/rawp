@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="family.hadden.rawp">
 	<uses-feature android:name="android.software.live_wallpaper" android:required="true" />
+	<uses-permission android:name="android.permission.INTERNET" />
 
 	<application
 		android:allowBackup="true"
