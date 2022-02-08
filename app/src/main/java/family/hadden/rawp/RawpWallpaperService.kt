@@ -7,7 +7,11 @@ import android.service.wallpaper.WallpaperService
 import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.SurfaceHolder
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 
 class RawpWallpaperService : WallpaperService() {
 	override fun onCreateEngine(): Engine = WallpaperEngine()
@@ -30,7 +34,19 @@ class RawpWallpaperService : WallpaperService() {
 
 			val pres = Presentation(displayContext, virtualDisplay.display)
 			val webView = WebView(pres.context)
-			webView.loadUrl("https://google.com")
+
+			val assetLoader = WebViewAssetLoader.Builder()
+				.addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this@RawpWallpaperService))
+				.build()
+
+			webView.webViewClient = object : WebViewClient() {
+				override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+					return assetLoader.shouldInterceptRequest(request.url)
+				}
+			}
+
+			webView.settings.javaScriptEnabled = true
+			webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
 
 			pres.setContentView(webView)
 			pres.show()
