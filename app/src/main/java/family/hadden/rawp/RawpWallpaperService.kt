@@ -26,8 +26,13 @@ class RawpWallpaperService : WallpaperService() {
 
 	private inner class RawpApi(val engine: WallpaperEngine) {
 		@android.webkit.JavascriptInterface
-		fun foo(text: String) {
-			println("Hear me out: $text")
+		fun launch(id: String) {
+			val intent = packageManager.getLaunchIntentForPackage(id)
+			if (intent != null) {
+				startActivity(intent)
+			} else {
+				println("Nope: $id")
+			}
 		}
 	}
 
