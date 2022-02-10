@@ -1,9 +1,16 @@
 body {
-	padding: 30% 40px;
-	font-size: 48px;
-
 	background-color: black;
 	color: white;
+	font-size: 48px;
+	overflow: hidden;
+	padding: 200px 20px;
+	user-select: none;
+}
+
+.container {
+}
+
+.content {
 }
 
 app-shortcut {

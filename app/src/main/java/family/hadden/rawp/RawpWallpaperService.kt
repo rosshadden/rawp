@@ -2,30 +2,24 @@ package family.hadden.rawp
 
 import android.app.Presentation
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.hardware.display.DisplayManager
 import android.service.wallpaper.WallpaperService
+import android.util.Base64
 import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.SurfaceHolder
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.webkit.WebViewAssetLoader
+import java.io.ByteArrayOutputStream
 
 class RawpWallpaperService : WallpaperService() {
 	override fun onCreateEngine(): Engine = WallpaperEngine()
 
-	private inner class MyWebView(context: Context) : WebView(context) {
-		override fun onTouchEvent(event: MotionEvent): Boolean {
-			println("WHATY IS HAPPENING " + event.action)
-//			requestDisallowInterceptTouchEvent(true)
-			return super.onTouchEvent(event)
-		}
-	}
-
+	// TODO: breakout.exe
 	private inner class RawpApi(val engine: WallpaperEngine) {
-		@android.webkit.JavascriptInterface
+		@JavascriptInterface
 		fun launch(id: String) {
 			val intent = packageManager.getLaunchIntentForPackage(id)
 			if (intent != null) {
@@ -33,6 +27,18 @@ class RawpWallpaperService : WallpaperService() {
 			} else {
 				println("Nope: $id")
 			}
+		}
+
+		@JavascriptInterface
+		fun getIcon(id: String): String {
+			val icon = packageManager.getApplicationIcon(id)
+			val bitmap = Bitmap.createBitmap(icon.intrinsicWidth, icon.intrinsicHeight, Bitmap.Config.ARGB_8888)
+			val canvas = Canvas(bitmap)
+			icon.setBounds(0, 0, canvas.width, canvas.height)
+			icon.draw(canvas)
+			val bytes = ByteArrayOutputStream()
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+			return "data:image/png;base64," + Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT)
 		}
 	}
 
@@ -70,7 +76,7 @@ class RawpWallpaperService : WallpaperService() {
 			view.addJavascriptInterface(api, "rawp")
 			view.settings.javaScriptEnabled = true
 			view.loadUrl("https://appassets.androidplatform.net/assets/index.html")
-//			webView.loadUrl("https://google.com")
+//			view.loadUrl("https://google.com")
 
 			pres.setContentView(view)
 			pres.show()
@@ -78,7 +84,6 @@ class RawpWallpaperService : WallpaperService() {
 
 		override fun onTouchEvent(event: MotionEvent) {
 			view.dispatchTouchEvent(event)
-//			return super.onTouchEvent(event)
 		}
 	}
 }
