@@ -16,7 +16,24 @@ import androidx.webkit.WebViewAssetLoader
 class RawpWallpaperService : WallpaperService() {
 	override fun onCreateEngine(): Engine = WallpaperEngine()
 
+	private inner class MyWebView(context: Context) : WebView(context) {
+		override fun onTouchEvent(event: MotionEvent): Boolean {
+			println("WHATY IS HAPPENING " + event.action)
+//			requestDisallowInterceptTouchEvent(true)
+			return super.onTouchEvent(event)
+		}
+	}
+
+	private inner class RawpApi(val engine: WallpaperEngine) {
+		@android.webkit.JavascriptInterface
+		fun foo(text: String) {
+			println("Hear me out: $text")
+		}
+	}
+
 	private inner class WallpaperEngine : WallpaperService.Engine() {
+		lateinit var view: WebView
+
 		override fun onSurfaceCreated(holder: SurfaceHolder) {
 			super.onSurfaceCreated(holder)
 
@@ -33,28 +50,30 @@ class RawpWallpaperService : WallpaperService() {
 			)
 
 			val pres = Presentation(displayContext, virtualDisplay.display)
-			val webView = WebView(pres.context)
-
+			val api = RawpApi(this)
 			val assetLoader = WebViewAssetLoader.Builder()
 				.addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this@RawpWallpaperService))
 				.build()
 
-			webView.webViewClient = object : WebViewClient() {
+			view = WebView(pres.context)
+			view.webViewClient = object : WebViewClient() {
 				override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
 					return assetLoader.shouldInterceptRequest(request.url)
 				}
 			}
 
-			webView.settings.javaScriptEnabled = true
-			webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+			view.addJavascriptInterface(api, "rawp")
+			view.settings.javaScriptEnabled = true
+			view.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+//			webView.loadUrl("https://google.com")
 
-			pres.setContentView(webView)
+			pres.setContentView(view)
 			pres.show()
 		}
 
-		override fun onTouchEvent(event: MotionEvent?) {
-			if (event?.action == MotionEvent.ACTION_DOWN) {
-			}
+		override fun onTouchEvent(event: MotionEvent) {
+			view.dispatchTouchEvent(event)
+//			return super.onTouchEvent(event)
 		}
 	}
 }

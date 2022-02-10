@@ -1,6 +1,23 @@
+function debug(value) {
+	document.getElementById("debug").innerText = value;
+}
+
 class AppShortcut extends HTMLElement {
+	constructor() {
+		super();
+
+		debug("test");
+
+		this.addEventListener("click", (event) => {
+			debug("foo");
+		});
+	}
+
 	connectedCallback() {
-		this.innerHTML = `<h1>Okay so here's what is up: ${this.getAttribute("lol")}</h1>`;
+		this.render();
+	}
+
+	render() {
 	}
 }
 
